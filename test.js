@@ -12,6 +12,9 @@ var pubkeyBase64 = btoa(String.fromCharCode.apply(null, pubkeyUints))
 pubkeyOutput.textContent = pubkeyBase64
 
 // render algorithms
+pubkeyAvis.constellation(constellationCanvas, pubkeyBuf)
+pubkeyAvis.tryAngles(tryAnglesCanvas, pubkeyBuf)
+pubkeyAvis.radiilines(radiilinesCanvas, pubkeyBuf)
 pubkeyAvis.blockwork(blockworkCanvas, pubkeyBuf)
 pubkeyAvis.blockwild(blockwildCanvas, pubkeyBuf)
 pubkeyAvis.wildegraph(wildegraphCanvas, pubkeyBuf)

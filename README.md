@@ -9,6 +9,10 @@ Build `test.build.js` with `browserify test.js > test.build.js`.
 
 ## current algorithms
 
+### Several
+
+![several](./example-pics/several.png)
+
 ### blockwork
 
 input buffer: `5wOwICjSC0ekV2w6V2zDI+fcqCIxApRg3RIF9TNzWlk=`

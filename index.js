@@ -25,6 +25,180 @@ function bot4 (byte) {
   return byte & 0b00001111
 }
 
+module.exports.constellation = function(canvas, buf){
+  var draw = canvas.getContext('2d')
+  var w = canvas.width
+  var h = canvas.height
+  var center = [w / 2, h / 2]
+  var img = draw.getImageData(0,0,w,h)
+
+  var arr = new Uint8Array(buf)//toArrayBuffer(buf)
+  var ratio = Math.sqrt(arr.byteLength) / (w * h)
+  var maxr = w / 2
+  var maxz = w * 2
+  draw.fillStyle = 'black'
+  draw.fillRect(0,0,w,h)
+  for(var x = 0; x < arr.length; x+=4){
+    var a = arr[x] / 255 * 360
+    var r = arr[x+1] / 255 * maxr
+    var z = arr[x+2] / 255 
+    var m = arr[x+3] / 255
+    var coord = xy(a,r)
+    console.log(coord[0], coord[1])
+    //coord[0] = coord[0] - w / 2
+    //coord[1] = coord[1] + h / 2
+    draw.beginPath()
+    draw.arc(coord[0], coord[1], m * 20, 0, Math.PI * 2, false)
+    var grad = draw.createRadialGradient(coord[0], coord[1], m * 20, coord[0], coord[1], 0)
+    grad.addColorStop(1, 'rgba(255, 255, 255,1)')
+    grad.addColorStop(z, 'rgba(255, 255, 255,'+(1-z)+' )')
+    grad.addColorStop(1-z, 'rgba(255, 255, 0, '+(z)+')')
+    grad.addColorStop(0, 'rgba(255, 255, 0, '+(1)+')')
+
+    draw.fillStyle = grad
+    draw.fill()
+    
+
+  }
+
+  function xy(a, r){
+    var xx = center[0] + r * Math.cos(a)
+    var yy = center[1] + r * Math.sin(a)
+    return [xx, yy]
+  }
+
+}
+
+module.exports.tryAngles = function(canvas, buf){
+  var draw = canvas.getContext('2d')
+  var w = canvas.width
+  var h = canvas.height
+  var center = [w / 2, h / 2]
+  var img = draw.getImageData(0,0,w,h)
+  
+  var arr = new Uint8Array(buf)//toArrayBuffer(buf)
+  var ratio = Math.sqrt(arr.byteLength) / (w * h)
+  var gr = 1.618033
+  var eyed = w / gr  
+  var lex = (w - eyed) / 2
+  var rex = lex + eyed
+  var ley = 88
+  var rey = 88
+  var my = h - (h / gr) / 2
+  for(var y = 0; y < h; ++y){
+    for(var x = 0; x < w; ++x){
+      var ld = distance([x,y], [lex, ley]) * 2
+      var rd = distance([x,y], [rex, rey]) * 2
+      var md = distance([x,y], [w / 2, my]) * 2
+      var ald = angle([x,y], [lex, ley]) * (180 / Math.PI)
+      var ard = angle([x,y], [rex, rey]) * (180 / Math.PI)
+      var amd = angle([x,y], [w / 2, my]) * (180 / Math.PI)
+      var tv = 360 - ald + ard + amd
+      var i = (y * w + x) * 4
+      var c = 0
+      var amdr = amd * (Math.PI / 180)
+
+      //if(i % 16 === 0) console.log(a)
+      
+      var v = arr[Math.floor(i * ratio)]
+
+      img.data[i] =   Math.floor(((tv / 360)) * ld / 255 * (arr[Math.floor(i * ratio)] / 2))
+      img.data[++i] =  Math.floor(((tv / 360)) *  rd / 255 * (arr[Math.floor(i * ratio)] / 2))
+      img.data[++i] =  Math.floor((((Math.abs(tv / 360)))) *  md / 255 *(arr[Math.floor(i * ratio)] / 2))
+      img.data[++i] = 255//Math.floor((d / 255) *  arr[Math.floor(i * ratio)])
+      
+
+    }
+  }
+
+  draw.putImageData(img, 0, 0)
+ 
+  function fill(arr, ratio){
+    var m = Math.floor(1 / ratio)
+    var arr8 = new Uint8Array(arr)
+    var narr = new ArrayBuffer(arr.byteLength * m)
+    var narr8 = new Uint8Array(narr)
+    for(var x = 0; x < narr.byteLength; x++){
+      narr8[x] = arr8[x % arr.byteLength]
+    }
+    return narr8
+  }
+
+  function angle(p1, p2){
+    var dx = p2[0] - p1[0]
+    var dy = p2[1] - p1[1]
+    return Math.atan2(dy, dx)
+  }
+  
+  function distance(p1, p2){
+    return Math.sqrt(Math.pow(p2[0] - p1[0], 2) + Math.pow(p2[1] - p1[1], 2))
+  }
+}
+
+module.exports.radiilines = function(canvas, buf){
+  var draw = canvas.getContext('2d')
+  var w = canvas.width
+  var h = canvas.height
+  var center = [w / 2, h / 2]
+  var img = draw.getImageData(0,0,w,h)
+  
+  var arr = new Uint8Array(buf)//toArrayBuffer(buf)
+  var ratio = Math.sqrt(arr.byteLength) / (w * h)
+  var gr = 1.618033
+  var eyed = w / gr  
+  var lex = (w - eyed) / 2
+  var rex = lex + eyed
+  var ley = 88
+  var rey = 88
+  var my = h - (h / gr) / 2
+  for(var y = 0; y < h; ++y){
+    for(var x = 0; x < w; ++x){
+      var ld = distance([x,y], [lex, ley]) * 2
+      var rd = distance([x,y], [rex, rey]) * 2
+      var md = distance([x,y], [w / 2, my]) * 2
+      var ald = angle([x,y], [lex, ley]) * (180 / Math.PI)
+      var ard = angle([x,y], [rex, rey]) * (180 / Math.PI)
+      var amd = angle([x,y], [w / 2, my]) * (180 / Math.PI)
+      var hyp = Math.sqrt(Math.pow(w, 2) + Math.pow(h, 2))
+      var i = (y * w + x) * 4
+      var c = 0
+      var td = ld + rd + md
+      //if(i % 16 === 0) console.log(a)
+      
+      var v = arr[Math.floor(i * ratio)]
+
+      img.data[i] =  255 - Math.floor(((td/ hyp )) *  (arr[Math.floor(i * ratio)] / 2))
+      img.data[++i] = 255 -  Math.floor(((td / hyp )) *  (arr[Math.floor(i * ratio)] / 2))
+      img.data[++i] = 255 - Math.floor(((td / hyp )) *  (arr[Math.floor(i * ratio)] / 2))
+      img.data[++i] = 255//Math.floor((d / 255) *  arr[Math.floor(i * ratio)])
+      
+
+    }
+  }
+
+  draw.putImageData(img, 0, 0)
+ 
+  function fill(arr, ratio){
+    var m = Math.floor(1 / ratio)
+    var arr8 = new Uint8Array(arr)
+    var narr = new ArrayBuffer(arr.byteLength * m)
+    var narr8 = new Uint8Array(narr)
+    for(var x = 0; x < narr.byteLength; x++){
+      narr8[x] = arr8[x % arr.byteLength]
+    }
+    return narr8
+  }
+
+  function angle(p1, p2){
+    var dx = p2[0] - p1[0]
+    var dy = p2[1] - p1[1]
+    return Math.atan2(dy, dx)
+  }
+  
+  function distance(p1, p2){
+    return Math.sqrt(Math.pow(p2[0] - p1[0], 2) + Math.pow(p2[1] - p1[1], 2))
+  }
+}
 
 module.exports.blockwork = function (canvas, buf) {
   buf = toArrayBuffer(buf)
